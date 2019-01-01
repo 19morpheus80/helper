@@ -56,6 +56,7 @@ check_pre_reqs () {
         echo "All dependencies are met"
     else
         echo "Not all dependencies are met"
+        exit 1
     fi
     if [ $CONFIG_FIREWALL = "Yes" ]; then
         sudo ufw allow $P2P_PORT/tcp
