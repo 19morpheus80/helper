@@ -1,0 +1,53 @@
+#Details of the GitHub source location
+GH_REPO="derogold"
+GH_URL="https://github.com/derogold/"
+GH_BRANCH="master"
+
+#Daemon executable
+D_EXEC="DeroGoldd"
+P2P_PORT="42069"
+RPC_PORT="6969"
+
+#Add whatever daemon flags you need to supply (--load-checkpoints=<path> --fee-address=<address> --fee-amount=#)
+ADD_DAEMON=""
+
+#Address to mine to
+MINE_ADDR="dg4EzdEzqEp96hgQbbHr7YjKBwFJC5iW3FKwuhKrexphRko1Ve3tqmVj5hKLyztqQSYFiArtivy7aMmfbDoC1ruQ1Ti8jiZMm"
+
+#Threads to use when mining
+MINE_THREAD="1"
+
+#Additional mining flags, excluding daemon-host, threads, and address, which are already supplied through variables
+ADD_MINER=""
+
+#Abbreviated coin name
+S_NAME="dg"
+
+### You don't really need to touch anything below this line ###
+
+#Set this to Yes to have the pre-requisites check to add UFW rules (for a public node)
+CONFIG_FIREWALL="No"
+
+#Array containing software build pre-requisites
+declare -a pReq=("build-essential" "g++-8" "gcc-8" "git" "libboost-all-dev" "cmake" "curl" "software-properties-common" "jq")
+
+#The miner docker name
+M="miner"
+DOCK_MINER="$S_NAME$M"
+
+#The docker daemon name
+D="daemon"
+DOCK_DAEMON="$S_NAME$D"
+
+#Where the scripts are being called from
+SCR_PATH="$(dirname "$0")"
+
+#Where the Github source is going to be stored, relative to these scripts
+RELA_PATH=".."
+
+#The path we'll save the stripped binaries to, relative to the build path
+OUT_DIR="bin"
+
+#Text formatting
+T_BOLD=$(tput bold)
+T_NORM=$(tput sgr0)
