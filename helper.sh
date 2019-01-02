@@ -156,10 +156,14 @@ write_dockerfile () {
     echo "*/zip" > "$1\.dockerignore"
     echo "*/sh" > "$1\.dockerignore"
     echo "*/ignore" > "$1\.dockerignore"
+    echo "*/csv" > "$1\.dockerignore"
     echo "FROM ubuntu" > "$1/Dockerfile"
     echo "RUN apt update && \\" >> "$1/Dockerfile"
     echo "    apt -y upgrade" >> "$1/Dockerfile"
     echo "ADD . /usr/bin" >> "$1/Dockerfile"
+    if [ ! -z "$CHECKPOINTS_URL" ]; then
+        echo "ADD ./checkpoints.csv /data" >> "$1/Dockerfile"
+    fi
     echo "EXPOSE $P2P_PORT/tcp" >> "$1/Dockerfile"
     echo "EXPOSE $RPC_PORT/tcp" >> "$1/Dockerfile"
 }
@@ -192,7 +196,8 @@ miner_start () {
   echo "Starting Docker container as service.."
   DAEMON_IP=$(get_docker_ip $DOCK_DAEMON)
   MINER_COMMAND="/usr/bin/miner --daemon-host=$DAEMON_IP --threads=$MINE_THREAD --address=$MINE_ADDR $ADD_MINER"
-  nice docker run $INTMODE-it --restart=unless-stopped --name=$DOCK_MINER $GH_REPO $MINERCOMMAND
+  echo "nice docker run $INTMODE-it --restart=unless-stopped --name=$DOCK_MINER $GH_REPO $MINER_COMMAND"
+  nice docker run $INTMODE-it --restart=unless-stopped --name=$DOCK_MINER $GH_REPO $MINER_COMMAND
 }
 
 miner_stop () {
