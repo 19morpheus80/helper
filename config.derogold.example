@@ -11,7 +11,7 @@ D_EXEC="DeroGoldd"
 P2P_PORT="42069"
 RPC_PORT="6969"
 
-CHECKPOINTS_URL=""
+CHECKPOINTS_URL="https://github.com/derogold/checkpoints/raw/master/checkpoints.csv"
 
 #Extra daemon options
 ENABLE_BLOCKEXPLORER="0" # 1 enables option
@@ -26,7 +26,7 @@ ADD_DAEMON=""
 MINE_ADDR="dg4EzdEzqEp96hgQbbHr7YjKBwFJC5iW3FKwuhKrexphRko1Ve3tqmVj5hKLyztqQSYFiArtivy7aMmfbDoC1ruQ1Ti8jiZMm"
 
 #Threads to use when mining
-MINE_THREAD="1"
+MINE_THREAD="3"
 
 #Additional mining flags, excluding daemon-host, threads, and address, which are already supplied through variables
 ADD_MINER=""
