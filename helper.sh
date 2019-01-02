@@ -205,6 +205,11 @@ miner_restart () {
 }
 
 daemon_start () {
+    if [ "$2" == "i" ]; then
+      INTMODE=""
+    else
+      INTMODE="-d " #keep the trailing space
+    fi
     echo "Starting daemon in Docker container as service.."
     DAEMON_COMMAND="/usr/bin/$D_EXEC --rpc-bind-ip=0.0.0.0 --p2p-bind-ip 0.0.0.0 --data-dir=/data $ADD_DAEMON"
     docker run $INTMODE-it --restart=unless-stopped -p $RPC_PORT:$RPC_PORT -p $P2P_PORT:$P2P_PORT --name=$DOCK_DAEMON --mount source=$S_NAME-data,target=/data $GH_REPO $DAEMON_COMMAND
@@ -246,6 +251,7 @@ docker_monitor () {
                 _synced="NO"
             else
                 _synced="Yes"
+                _hassynced="1"
             fi
             clear
             echo "Difficulty:  $(numfmt --to=si --format='%.2f' $_difficulty)"
@@ -254,12 +260,13 @@ docker_monitor () {
             echo "Conn.:       In:$_incoming/Out:$_outgoing"
             echo "Synced:      $_synced"
             echo "$_miner"
-            if [ $_restartcount -gt 0 ]; then
+            if [ $_restartcount -gt "0" ]; then
                 echo "Restarted $_restartcount times"
             fi
-            if [ $_heightdiff -gt $_allowsyncdiff ]; then
+            if [ $_hassynced = "1" ] && [ $_heightdiff -gt $_allowsyncdiff ]; then
                 echo "Out of sync - Restarting daemon!"
-                (($_restartcount++))
+                let "_restartcount++"
+                echo $_restartcount
                 #daemon_restart
                 sleep 20
             else
