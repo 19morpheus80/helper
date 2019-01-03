@@ -234,16 +234,17 @@ daemon_restart () {
 
 docker_monitor () {
     while [ $? -eq 0 ]; do
-        DOCKER_IP=$(get_docker_ip $DOCK_DAEMON)
-        if [ -z $DOCKER_IP ]; then
+        DAEMON_IP=$(get_docker_ip $DOCK_DAEMON)
+        if [ -z $DAEMON_IP ]; then
             echo "Daemon does not seem to be running!"
         else
-            NODE_INFO=$(wget -qO- $DOCKER_IP:6969/getinfo | jq '{difficulty, hashrate, height, network_height, status, synced, incoming_connections_count, outgoing_connections_count}')
-            DOCKER_IP=$(get_docker_ip $DOCK_MINER)
-            if [ -z $DOCKER_IP ]; then
-                _miner="Miner does not seem to be running"
+            NODE_INFO=$(wget -qO- $DAEMON_IP:$RPC_PORT/getinfo | jq '{difficulty, hashrate, height, network_height, status, synced, incoming_connections_count, outgoing_connections_count}')
+            MINER_IP=$(get_docker_ip $DOCK_MINER)
+            if [ -z $MINER_IP ]; then
+                _miner="Miner is not running"
             else
                 _miner=$(docker logs --tail 10 dgminer | grep "Mining" | tail -1)
+                _miner="$_miner on $MINER_IP"
             fi
             _difficulty=$(echo "$NODE_INFO" | grep difficulty | grep -o '[0-9]\+')
             _hashrate=$(echo "$NODE_INFO" | grep hashrate | grep -o '[0-9]\+')
@@ -260,6 +261,7 @@ docker_monitor () {
                 _hassynced="1"
             fi
             clear
+            echo "Docker running on $DAEMON_IP"
             echo "Difficulty:  $(numfmt --to=si --format='%.2f' $_difficulty)"
             echo "Hashrate:    $(numfmt --to=si --format='%.3f' $_hashrate)H/s"
             echo "Height:      $_netheight(+/-$_heightdiff)"
