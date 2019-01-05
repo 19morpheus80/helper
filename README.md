@@ -1,3 +1,6 @@
+STATUS: Working on the derogold config.  Other config examples are out of date.
+Working on several features; checkpoint downloading and integration, autoprep check broke so you have to run each step one at a time.  Will set optional -y flag for auto download prereqs, other stuff.  I know the readme is a mess.  I don't really care right now.
+
 + Morpheus' CryptoNote helper script for Ubuntu 18.04
 
 ++ A significant re-write and refinement of my original turtlecoin-docker-release script.
