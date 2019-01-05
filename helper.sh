@@ -234,11 +234,11 @@ daemon_restart () {
 
 docker_monitor () {
     while [ $? -eq 0 ]; do
-        DOCKER_IP=$(get_docker_ip $DOCK_DAEMON)
-        if [ -z $DOCKER_IP ]; then
+        DAEMON_IP=$(get_docker_ip $DOCK_DAEMON)
+        if [ -z $DAEMON_IP ]; then
             echo "Daemon does not seem to be running!"
         else
-            NODE_INFO=$(wget -qO- $DOCKER_IP:6969/getinfo | jq '{difficulty, hashrate, height, network_height, status, synced, incoming_connections_count, outgoing_connections_count}')
+            NODE_INFO=$(wget -qO- $DAEMON_IP:6969/getinfo | jq '{difficulty, hashrate, height, network_height, status, synced, incoming_connections_count, outgoing_connections_count}')
             DOCKER_IP=$(get_docker_ip $DOCK_MINER)
             if [ -z $DOCKER_IP ]; then
                 _miner="Miner does not seem to be running"
@@ -253,23 +253,25 @@ docker_monitor () {
             _incoming=$(echo "$NODE_INFO" | grep incoming_connections_count | grep -o '[0-9]\+')
             _outgoing=$(echo "$NODE_INFO" | grep outgoing_connections_count | grep -o '[0-9]\+')
             _synced=$(echo "$NODE_INFO" | grep synced | grep -o true)
-            if [ -z $_synced ]; then
-                _synced="NO"
-            else
+            if [ ! -z $_synced ]; then
                 _synced="Yes"
-                _hassynced="1"
             fi
             clear
+            echo "Docker daemon running on $DAEMON_IP"
             echo "Difficulty:  $(numfmt --to=si --format='%.2f' $_difficulty)"
             echo "Hashrate:    $(numfmt --to=si --format='%.3f' $_hashrate)H/s"
             echo "Height:      $_netheight(+/-$_heightdiff)"
             echo "Conn.:       In:$_incoming/Out:$_outgoing"
-            echo "Synced:      $_synced"
+            if [ ! -z $_synced ]; then
+              echo "Synced:      $_synced"
+            else
+              echo "Syncing..."
+            fi
             echo "$_miner"
-            if [ $_restartcount -gt "0" ]; then
+            if [ $_restartcount -ge 1 ]; then
                 echo "Restarted $_restartcount times"
             fi
-            if [ $_hassynced = "1" ] && [ $_heightdiff -gt $_allowsyncdiff ]; then
+            if [ ! -z $_synced  ] && [ $_heightdiff -gt $_allowsyncdiff ]; then
                 echo "Out of sync - Restarting daemon!"
                 let "_restartcount++"
                 echo $_restartcount
