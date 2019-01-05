@@ -1,14 +1,14 @@
 STATUS: Working on the derogold config.  Other config examples are out of date.
 Working on several features; checkpoint downloading and integration, autoprep check broke so you have to run each step one at a time.  Will set optional -y flag for auto download prereqs, other stuff.  I know the readme is a mess.  I don't really care right now.
 
-+ Morpheus' CryptoNote helper script for Ubuntu 18.04
+# Morpheus' CryptoNote helper script for Ubuntu 18.04
 
-++ A significant re-write and refinement of my original turtlecoin-docker-release script.
+## A significant re-write and refinement of my original turtlecoin-docker-release script.
 
 The *helper.sh* script needs a *config.sh* file to read its variables from.
 Copy one of the included examples and edit it for your coin.
 
-++++ The helper script simplifies:
+#### The helper script simplifies:
  - downloading, updating, compiling the source code
  - building/ updating the docker image
  - starting and stopping the daemon/miner docker container
@@ -26,7 +26,7 @@ coinparent
 
 To change this setup, edit the config.sh file RELA_PATH and OUT_DIR variables.
 
-+++ Usage
+### Usage
 Run dockerprep.sh firstly to get the docker-ce package installed.  This is a basic script and if it fails
 you'll have to figure it out for yourself. 9/10 it might work..
 
@@ -35,11 +35,11 @@ From GitHub to Docker:
 ('check' checks and optionally installs compile prerequisites
 'autoprep' runs through all procedures - not working at the moment)
 
-++++ Daemon Control:
+#### Daemon Control:
 *./helper {daemonstart|daemonstop|daemonrestart}*
 
-++++ Miner Control:
+#### Miner Control:
 *./helper {minerstart|minerstop|minerrestart}*
 
-++++ Monitor:
+#### Monitor:
 *./helper monitor*
