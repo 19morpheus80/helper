@@ -3,12 +3,24 @@ GH_REPO="turtlecoin"
 GH_URL="https://github.com/turtlecoin/"
 GH_BRANCH="master"
 
+#Abbreviated coin name or ticker - used for naming the docker containers
+S_NAME="trtl"
+
 #Daemon executable
 D_EXEC="TurtleCoind"
 P2P_PORT="11897"
 RPC_PORT="11898"
 
-#Add whatever daemon flags you need to supply (--load-checkpoints=<path> --fee-address=<address> --fee-amount=#)
+#If you change this line you have to rebuild your docker container (./helper build)
+CHECKPOINTS_URL="https://github.com/turtlecoin/checkpoints/raw/master/checkpoints.csv"
+
+#Extra daemon options
+ENABLE_BLOCKEXPLORER="1" # 1 enables option
+#FEE-ADDRESS="TRTLuxqfDys1pfQ1omkHMVViY4sFh6My5Ff3HBY8XPp3cJBkEfD7romVyzKug3mb9NNR4A8kEjZxZ9CHUgWckBSpPfbxnWAQUGL"
+#FEE-AMOUNT="100"
+#[if $FEE-AMOUNT]#implement next
+
+#Add whatever additional daemon flags you need to supply?
 ADD_DAEMON=""
 
 #Address to mine to
@@ -20,10 +32,11 @@ MINE_THREAD="1"
 #Additional mining flags, excluding daemon-host, threads, and address, which are already supplied through variables
 ADD_MINER=""
 
-#Abbreviated coin name
-S_NAME="tc"
 
-### You don't really need to touch anything below this line ###
+###################### You don't really need to touch anything below this line ########################
+
+#Set this to Yes to have the pre-requisites check to add UFW rules (for a public node)
+CONFIG_FIREWALL="No"
 
 #Array containing software build pre-requisites
 declare -a pReq=("build-essential" "g++-8" "gcc-8" "git" "libboost-all-dev" "cmake" "curl" "software-properties-common" "jq")
@@ -48,3 +61,10 @@ OUT_DIR="bin"
 #Text formatting
 T_BOLD=$(tput bold)
 T_NORM=$(tput sgr0)
+
+if [ $ENABLE_BLOCKEXPLORER = "1" ]; then
+    ADD_DAEMON="$ADD_DAEMON --enable-blockexplorer"
+fi
+if [ ! -z $CHECKPOINTS_URL ]; then
+    ADD_DAEMON="$ADD_DAEMON --load-checkpoints=/root/checkpoints.csv"
+fi
