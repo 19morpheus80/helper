@@ -65,5 +65,5 @@ if [ $ENABLE_BLOCKEXPLORER = "1" ]; then
     ADD_DAEMON="$ADD_DAEMON --enable-blockexplorer"
 fi
 if [ ! -z $CHECKPOINTS_URL ]; then
-    ADD_DAEMON="$ADD_DAEMON  --load-checkpoints=/data/checkpoints.csv"
+    ADD_DAEMON="$ADD_DAEMON --load-checkpoints=/root/checkpoints.csv"
 fi

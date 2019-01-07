@@ -45,19 +45,20 @@ check_pre_reqs () {
         fi
     done
     for i in "${pReq[@]}"; do
-        dpkg -s $i &> /dev/null
-        if [ ! $? -eq 0 ]; then
-           CPR_RESULT="1"
-        else
-            CPR_RESULT="0"
-        fi
+        echo "find $i"
+        dpkg -s $i | grep Status
+#        if [ ! $? -eq 0 ]; then
+#           CPR_RESULT="1"
+#        else
+#            CPR_RESULT="0"
+#        fi
     done
-    if [ $CPR_RESULT = "1" ]; then
-        echo "All dependencies are met"
-    else
-        echo "Not all dependencies are met"
-        exit 1
-    fi
+#    if [ $CPR_RESULT -eq 1 ]; then
+#        echo "All dependencies are met"
+#    else
+#        echo "Not all dependencies are met"
+#        exit 1
+#    fi
     if [ $CONFIG_FIREWALL = "Yes" ]; then
         sudo ufw allow $P2P_PORT/tcp
         sudo ufw allow $RPC_PORT/tcp
@@ -152,17 +153,17 @@ strip_binaries () {
 
 write_dockerfile () {
     echo "#we don't want zipfiles or scripts included" > "$1\.dockerignore"
-    echo "*/7z" > "$1\.dockerignore"
-    echo "*/zip" > "$1\.dockerignore"
-    echo "*/sh" > "$1\.dockerignore"
-    echo "*/ignore" > "$1\.dockerignore"
-    echo "*/csv" > "$1\.dockerignore"
+    echo "*/7z" >> "$1\.dockerignore"
+    echo "*/zip" >> "$1\.dockerignore"
+    echo "*/sh" >> "$1\.dockerignore"
+    echo "*/ignore" >> "$1\.dockerignore"
+#    echo "*/csv" > "$1\.dockerignore"
     echo "FROM ubuntu" > "$1/Dockerfile"
     echo "RUN apt update && \\" >> "$1/Dockerfile"
     echo "    apt -y upgrade" >> "$1/Dockerfile"
     echo "ADD . /usr/bin" >> "$1/Dockerfile"
     if [ ! -z "$CHECKPOINTS_URL" ]; then
-        echo "ADD ./checkpoints.csv /data" >> "$1/Dockerfile"
+        echo "ADD '$CHECKPOINTS_URL' /root/checkpoints.csv" >> "$1/Dockerfile"
     fi
     echo "EXPOSE $P2P_PORT/tcp" >> "$1/Dockerfile"
     echo "EXPOSE $RPC_PORT/tcp" >> "$1/Dockerfile"
@@ -219,6 +220,7 @@ daemon_start () {
     echo "Starting daemon in Docker container as service.."
     DAEMON_COMMAND="/usr/bin/$D_EXEC --rpc-bind-ip=0.0.0.0 --p2p-bind-ip 0.0.0.0 --data-dir=/data $ADD_DAEMON"
     docker run $INTMODE-it --restart=unless-stopped -p $RPC_PORT:$RPC_PORT -p $P2P_PORT:$P2P_PORT --name=$DOCK_DAEMON --mount source=$S_NAME-data,target=/data $GH_REPO $DAEMON_COMMAND
+    echo "docker run $INTMODE-it --restart=unless-stopped -p $RPC_PORT:$RPC_PORT -p $P2P_PORT:$P2P_PORT --name=$DOCK_DAEMON --mount source=$S_NAME-data,target=/data $GH_REPO $DAEMON_COMMAND"
 }
 
 daemon_stop () {
