@@ -33,7 +33,7 @@ package_installer () {
     if [[ ! "$U_INPUT" = "n" ]] || [[ ! "$U_INPUT" = "N" ]]; then
         echo "Installing $1"
         sudo apt-get install $1
-    fi    
+    fi
 }
 
 check_pre_reqs () {
@@ -45,7 +45,7 @@ check_pre_reqs () {
         fi
     done
     for i in "${pReq[@]}"; do
-        echo "find $i"
+        echo "find $T_BOLD$i$T_NORM"
         dpkg -s $i | grep Status
 #        if [ ! $? -eq 0 ]; then
 #           CPR_RESULT="1"
@@ -277,8 +277,8 @@ docker_monitor () {
                 echo "Out of sync - Restarting daemon!"
                 let "_restartcount++"
                 echo $_restartcount
-                #daemon_restart
-                sleep 20
+                daemon_restart
+                sleep 10
             else
                 sleep 10
             fi
@@ -286,10 +286,17 @@ docker_monitor () {
     done
 }
 
+show_docker_ips () {
+    docker ps -q | xargs -n 1 docker inspect --format '{{ .NetworkSettings.IPAddress }} {{ .Name }}' | sed 's/ \// /'
+}
+
 case "$1" in
+        show)
+            show_docker_ips
+            ;;
         check)
             check_pre_reqs
-            ;;         
+            ;;
         update)
             update_source
             ;;
