@@ -150,11 +150,11 @@ strip_binaries () {
 }
 
 write_dockerfile () {
-    echo "#we don't want zipfiles or scripts included" > "$1\.dockerignore"
-    echo "*/7z" >> "$1\.dockerignore"
-    echo "*/zip" >> "$1\.dockerignore"
-    echo "*/sh" >> "$1\.dockerignore"
-    echo "*/ignore" >> "$1\.dockerignore"
+    echo "#we don't want zipfiles or scripts included" > "$1/.dockerignore"
+    echo "*/7z" >> "$1/.dockerignore"
+    echo "*/zip" >> "$1/.dockerignore"
+    echo "*/sh" >> "$1/.dockerignore"
+    echo "*/ignore" >> "$1/.dockerignore"
     echo "FROM ubuntu" > "$1/Dockerfile"
     echo "RUN apt update && \\" >> "$1/Dockerfile"
     echo "    apt -y upgrade" >> "$1/Dockerfile"
@@ -212,6 +212,7 @@ miner_restart () {
 
 daemon_start () {
     echo "Starting daemon in Docker container as service.."
+    eval $DAEMON_COMMAND
 }
 
 daemon_stop () {
