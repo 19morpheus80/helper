@@ -6,16 +6,13 @@ if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
 . "$DIR/config.sh"
 
 if [ -z $GH_REPO ]; then
-    echo "You must rename one of the examples to config.sh and edit as required for your coin."
+    echo "You must rename one of the examples to$T_BOLD config.sh$T_NORM and edit as required for your coin."
     exit 1
 fi
 
-REPO_PATH=$(readlink -f "$RELA_PATH/$GH_REPO")
-WORK_PATH=$(pwd)
-BINDEST_PATH=$(readlink -f "$RELA_PATH/$OUT_DIR") #where we save stripped binaries
-
-declare -i _allowsyncdiff=120
-declare -i _restartcount=0
+get_docker_ip () {
+    echo $(docker ps -q | xargs -n 1 docker inspect --format '{{ .NetworkSettings.IPAddress }} {{ .Name }}' | sed 's/ \// /' | awk "/$1/ { print \$1; }")
+}
 
 package_updater () {
     read -p "Would you like to run apt update before installing a package? (y/N): " U_INPUT
@@ -47,18 +44,19 @@ check_pre_reqs () {
     for i in "${pReq[@]}"; do
         echo "find $T_BOLD$i$T_NORM"
         dpkg -s $i | grep Status
-#        if [ ! $? -eq 0 ]; then
-#           CPR_RESULT="1"
-#        else
-#            CPR_RESULT="0"
-#        fi
+        if [ ! $? -eq 0 ]; then
+            echo "$i has errorlevel not 0"
+            CPR_RESULT="1"
+        else
+            CPR_RESULT="0"
+        fi
     done
-#    if [ $CPR_RESULT -eq 1 ]; then
-#        echo "All dependencies are met"
-#    else
-#        echo "Not all dependencies are met"
-#        exit 1
-#    fi
+    if [ $CPR_RESULT -eq 0 ]; then
+        echo "All dependencies are met"
+    else
+        echo "Not all dependencies are met"
+        exit 1
+    fi
     if [ $CONFIG_FIREWALL = "Yes" ]; then
         sudo ufw allow $P2P_PORT/tcp
         sudo ufw allow $RPC_PORT/tcp
@@ -157,7 +155,6 @@ write_dockerfile () {
     echo "*/zip" >> "$1\.dockerignore"
     echo "*/sh" >> "$1\.dockerignore"
     echo "*/ignore" >> "$1\.dockerignore"
-#    echo "*/csv" > "$1\.dockerignore"
     echo "FROM ubuntu" > "$1/Dockerfile"
     echo "RUN apt update && \\" >> "$1/Dockerfile"
     echo "    apt -y upgrade" >> "$1/Dockerfile"
@@ -184,21 +181,23 @@ build_docker_image () {
     cd "$WORK_PATH"
 }
 
-get_docker_ip () {
-  echo $(docker ps -q | xargs -n 1 docker inspect --format '{{ .NetworkSettings.IPAddress }} {{ .Name }}' | sed 's/ \// /' | awk "/$1/ { print \$1; }")
+print_miner_command () {
+    local _message="$T_BOLD"
+    _message+="Miner will start with:$T_NORM $MINER_COMMAND"
+    echo "$_message"
+}
+
+print_daemon_commmand () {
+    local _message="$T_BOLD"
+    _message+="Daemon will start with:$T_NORM $DAEMON_COMMAND"
+    echo $_message
 }
 
 miner_start () {
-  if [ "$2" == "i" ]; then
-    INTMODE=""
-  else
-    INTMODE="-d " #keep the trailing space
-  fi
-  echo "Starting Docker container as service.."
-  DAEMON_IP=$(get_docker_ip $DOCK_DAEMON)
-  MINER_COMMAND="/usr/bin/miner --daemon-host=$DAEMON_IP --threads=$MINE_THREAD --address=$MINE_ADDR $ADD_MINER"
-  echo "nice docker run $INTMODE-it --restart=unless-stopped --name=$DOCK_MINER $GH_REPO $MINER_COMMAND"
-  nice docker run $INTMODE-it --restart=unless-stopped --name=$DOCK_MINER $GH_REPO $MINER_COMMAND
+    echo "Starting Docker container as service.."
+    DAEMON_IP=$(get_docker_ip $DOCK_DAEMON)
+
+    eval $MINER_COMMAND
 }
 
 miner_stop () {
@@ -212,15 +211,7 @@ miner_restart () {
 }
 
 daemon_start () {
-    if [ "$2" == "i" ]; then
-      INTMODE=""
-    else
-      INTMODE="-d " #keep the trailing space
-    fi
     echo "Starting daemon in Docker container as service.."
-    DAEMON_COMMAND="/usr/bin/$D_EXEC --rpc-bind-ip=0.0.0.0 --p2p-bind-ip 0.0.0.0 --data-dir=/data $ADD_DAEMON"
-    docker run $INTMODE-it --restart=unless-stopped -p $RPC_PORT:$RPC_PORT -p $P2P_PORT:$P2P_PORT --name=$DOCK_DAEMON --mount source=$S_NAME-data,target=/data $GH_REPO $DAEMON_COMMAND
-    echo "docker run $INTMODE-it --restart=unless-stopped -p $RPC_PORT:$RPC_PORT -p $P2P_PORT:$P2P_PORT --name=$DOCK_DAEMON --mount source=$S_NAME-data,target=/data $GH_REPO $DAEMON_COMMAND"
 }
 
 daemon_stop () {
@@ -297,6 +288,11 @@ case "$1" in
         check)
             check_pre_reqs
             ;;
+        ok)
+            print_daemon_commmand
+            echo " "
+            print_miner_command
+            ;;
         update)
             update_source
             ;;
@@ -316,37 +312,39 @@ case "$1" in
             strip_binaries
             build_docker_image
             ;;
-        minerstart)
+        mstart)
             miner_start
             ;;         
-        minerstop)
+        mstop)
             miner_stop
             ;;
-        minerrestart)
+        mrestart)
             miner_restart
             ;;
-        daemonstart)
+        dstart)
             daemon_start
             ;;         
-        daemonstop)
+        dstop)
             daemon_stop
             ;;
-        daemonrestart)
+        drestart)
             daemon_restart
             ;;
         monitor)
             docker_monitor
             ;;
+        about)
+            echo "$_banner"
+            ;;
          *)
-            echo $"Usage: $0 {check|update|compile|strip|build|autoprep}"
-            echo $"Usage: $0 {daemonstart|daemonstop|daemonrestart}"
-            echo $"Usage: $0 {minerstart|minerstop|minerrestart}"
-            echo $"Usage: $0 monitor"
+            echo $"Prep   Usage: $0 {autoprep} || {check|update|compile|strip|build}"
+            echo $"Daemon Usage: $0 {dstart|dstop|drestart}"
+            echo $"Miner  Usage: $0 {mstart|mstop|mrestart}"
+            echo $"Info.  Usage: $0 {show|monitor|about}"
+            echo ""
+            echo $"General guide: If you're seeing this, a config file is loaded.  Have you checked it?"
+            echo $"Autoprep builds the docker image with binaries using subsequent commands (use this)."
+            echo $"The daemon and miner commands are self explanatory. Restart commands only restart the docker."
+            echo $"(good if your daemon looses sync).  If you change the configuration, stop then start manually."
             exit 1
 esac
-
-#check_pre_reqs
-#update_source
-#compile
-#strip_binaries
-#build_docker_image
