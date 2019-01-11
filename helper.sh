@@ -282,6 +282,22 @@ show_docker_ips () {
     docker ps -q | xargs -n 1 docker inspect --format '{{ .NetworkSettings.IPAddress }} {{ .Name }}' | sed 's/ \// /'
 }
 
+reset_blockchain () {
+    read -p "Delete blockchain storage and get your daemon running again? (y/N) " U_INPUT
+    if [ $U_INPUT = "y" ] || [ $U_INPUT = "Y" ]; then
+        miner_stop
+        daemon_stop
+				if [ ! -z $DATA_DIR ]; then
+						echo "Type: rm -rf $DATA_DIR" #I'm chickening out of leaving this live
+				else
+						docker volume rm $S_NAME-data
+            echo "Ready to rock"
+				fi
+    else
+        echo "OK let's not do that then"
+    fi
+    
+
 echo $"$_titlebanner"
 
 case "$1" in
@@ -333,6 +349,9 @@ case "$1" in
         drestart)
             daemon_restart
             ;;
+        resetstorage)
+            reset_blockchain
+            ;;
         monitor)
             docker_monitor
             ;;
@@ -341,7 +360,7 @@ case "$1" in
             ;;
          *)
             echo $"Prep   Usage: $0 {autoprep} || {check|update|compile|strip|build}"
-            echo $"Daemon Usage: $0 {dstart|dstop|drestart}"
+            echo $"Daemon Usage: $0 {dstart|dstop|drestart|resetstorage}"
             echo $"Miner  Usage: $0 {mstart|mstop|mrestart}"
             echo $"Info.  Usage: $0 {cmd|show|monitor|about}"
             echo ""
