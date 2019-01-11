@@ -1,14 +1,6 @@
-STATUS: Working on the derogold config.  Other config examples are out of date.
-Working on several features; checkpoint downloading and integration, autoprep check broke so you have to run each step one at a time.  Will set optional -y flag for auto download prereqs, other stuff.  I know the readme is a mess.  I don't really care right now.
+# Morpheus' CryptoNode helper script for Ubuntu 18.04
 
-# Morpheus' CryptoNote helper script for Ubuntu 18.04
-
-## A significant re-write and refinement of my original turtlecoin-docker-release script.
-
-The *helper.sh* script needs a *config.sh* file to read its variables from.
-Copy one of the included examples and edit it for your coin.
-
-#### The helper script simplifies:
+## The helper script simplifies:
  - downloading, updating, compiling the source code
  - building/ updating the docker image
  - starting and stopping the daemon/miner docker container
@@ -16,30 +8,31 @@ Copy one of the included examples and edit it for your coin.
 
 This script simplifies running seed/public nodes and/or CPU miners.
 
-To use it, create a parent directory, to contain these scripts in /helper, the source in /coinname
-and the stripped binaries which will be copied to the docker in /bin, like this:
+Use it like this:
 
-coinparent
- |- helper
- |- coinname
- |- bin
+```
+mkdir coin && cd $_
+git clone https://19morpehus80/helper
+cd helper
+cp config.turtlecoin.example config.sh
+nano config.sh
 
-To change this setup, edit the config.sh file RELA_PATH and OUT_DIR variables.
+./helper.sh
+Morpheus'
+┌─┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┌┐┌┌─┐┌┬┐┌─┐  ┬ ┬┌─┐┬  ┌─┐┌─┐┬─┐
+│  ├┬┘└┬┘├─┘ │ │ │││││ │ ││├┤   ├─┤├┤ │  ├─┘├┤ ├┬┘
+└─┘┴└─ ┴ ┴   ┴ └─┘┘└┘└─┘─┴┘└─┘  ┴ ┴└─┘┴─┘┴  └─┘┴└─
 
-### Usage
-Run dockerprep.sh firstly to get the docker-ce package installed.  This is a basic script and if it fails
-you'll have to figure it out for yourself. 9/10 it might work..
+Prep   Usage: ./helper.sh {autoprep} || {check|update|compile|strip|build}
+Daemon Usage: ./helper.sh {dstart|dstop|drestart}
+Miner  Usage: ./helper.sh {mstart|mstop|mrestart}
+Info.  Usage: ./helper.sh {cmd|show|monitor|about}
 
-From GitHub to Docker:
-*./helper {check|update|compile|strip|build|autoprep}*
-('check' checks and optionally installs compile prerequisites
-'autoprep' runs through all procedures - not working at the moment)
+./helper.sh autoprep
+... press enter a few times and wait for compile ..
+./helper.sh dstart
+./helper.sh monitor
+... wait for sync ... ctrl+c
+./helper.sh mstart (if you want to mine as well)
 
-#### Daemon Control:
-*./helper {daemonstart|daemonstop|daemonrestart}*
-
-#### Miner Control:
-*./helper {minerstart|minerstop|minerrestart}*
-
-#### Monitor:
-*./helper monitor*
+```

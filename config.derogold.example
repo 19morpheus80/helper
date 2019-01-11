@@ -1,6 +1,6 @@
 #Details of the GitHub source location
 GH_REPO="derogold"
-GH_URL="https://github.com/derogold/"
+GH_URL="https://github.com/derogold/" #keep trailing slash
 GH_BRANCH="master"
 
 #Abbreviated coin name or ticker - used for naming the docker containers
@@ -11,13 +11,17 @@ D_EXEC="DeroGoldd"
 P2P_PORT="42069"
 RPC_PORT="6969"
 
+#If you change this line you have to rebuild your docker container (./helper build)
 CHECKPOINTS_URL="https://github.com/derogold/checkpoints/raw/master/checkpoints.csv"
+
+#Uncomment and type the full path to the existing blockchain data folder, if your using that
+# otherwise the data location is a docker volume
+#DATA_DIR="/"
 
 #Extra daemon options
 ENABLE_BLOCKEXPLORER="0" # 1 enables option
-#FEE-ADDRESS=""
-#FEE-AMOUNT=""
-#[if $FEE-AMOUNT]#implement next
+FEE_ADDRESS=""
+FEE_AMOUNT=""
 
 #Add whatever additional daemon flags you need to supply?
 ADD_DAEMON=""
@@ -26,19 +30,20 @@ ADD_DAEMON=""
 MINE_ADDR="dg4EzdEzqEp96hgQbbHr7YjKBwFJC5iW3FKwuhKrexphRko1Ve3tqmVj5hKLyztqQSYFiArtivy7aMmfbDoC1ruQ1Ti8jiZMm"
 
 #Threads to use when mining
-MINE_THREAD="3"
+MINE_THREAD="1"
 
 #Additional mining flags, excluding daemon-host, threads, and address, which are already supplied through variables
 ADD_MINER=""
 
+#Array containing software build pre-requisites
+declare -a pReq=("build-essential" "g++-8" "gcc-8" "git" "libboost-all-dev" "cmake" "curl" "software-properties-common" "jq")
+declare -i _allowsyncdiff=120 # how many blocks of desync to measure before daemon restart trigger
+declare -i _restartcount=0
 
 ###################### You don't really need to touch anything below this line ########################
 
 #Set this to Yes to have the pre-requisites check to add UFW rules (for a public node)
 CONFIG_FIREWALL="No"
-
-#Array containing software build pre-requisites
-declare -a pReq=("build-essential" "g++-8" "gcc-8" "git" "libboost-all-dev" "cmake" "curl" "software-properties-common" "jq")
 
 #The miner docker name
 M="miner"
@@ -62,8 +67,59 @@ T_BOLD=$(tput bold)
 T_NORM=$(tput sgr0)
 
 if [ $ENABLE_BLOCKEXPLORER = "1" ]; then
-    ADD_DAEMON="$ADD_DAEMON --enable-blockexplorer"
+    ADD_DAEMON+=" --enable-blockexplorer"
 fi
 if [ ! -z $CHECKPOINTS_URL ]; then
-    ADD_DAEMON="$ADD_DAEMON --load-checkpoints=/root/checkpoints.csv"
+    ADD_DAEMON+=" --load-checkpoints=/root/checkpoints.csv"
 fi
+if [ ! -z $FEE_AMOUNT ] && [ ! -z $FEE_ADDRESS ]; then
+    ADD_DAEMON+=" --fee-address=$FEE_ADDRESS --fee-amount=$FEE_AMOUNT"
+fi
+
+# interactive or detached mode
+if [ "$2" == "i" ]; then
+INTMODE=""
+else
+INTMODE="-d " #keep the trailing space
+fi
+
+if [ ! -z $DATA_DIR ]; then
+    _mountcommand="-v $DATA_DIR:/data"
+else
+    _mountcommand="--mount source=$S_NAME-data,target=/data"
+fi
+
+DAEMON_COMMAND="/usr/bin/$D_EXEC --rpc-bind-ip=0.0.0.0 --p2p-bind-ip 0.0.0.0 --data-dir=/data"
+if [ ! -z  "$ADD_DAEMON" ]; then
+    DAEMON_COMMAND+=" $ADD_DAEMON"
+fi
+DAEMON_COMMAND="docker run $INTMODE-it --restart=unless-stopped -p $RPC_PORT:$RPC_PORT -p $P2P_PORT:$P2P_PORT --name=$DOCK_DAEMON $_mountcommand $GH_REPO $DAEMON_COMMAND"
+
+MINER_COMMAND="/usr/bin/miner --daemon-host=\$DAEMON_IP --threads=$MINE_THREAD --address=$MINE_ADDR"
+if [ ! -z "$ADD_MINER" ]; then
+    ADD_MINER+=" $ADD_MINER"
+fi
+MINER_COMMAND="nice docker run $INTMODE-it --restart=unless-stopped --name=$DOCK_MINER $GH_REPO $MINER_COMMAND"
+
+REPO_PATH=$(readlink -f "$RELA_PATH/$GH_REPO")
+WORK_PATH=$(pwd)
+BINDEST_PATH=$(readlink -f "$RELA_PATH/$OUT_DIR") #where we save stripped binaries
+
+_titlebanner="
+Morpheus'
+┌─┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┌┐┌┌─┐┌┬┐┌─┐  ┬ ┬┌─┐┬  ┌─┐┌─┐┬─┐
+│  ├┬┘└┬┘├─┘ │ │ │││││ │ ││├┤   ├─┤├┤ │  ├─┘├┤ ├┬┘
+└─┘┴└─ ┴ ┴   ┴ └─┘┘└┘└─┘─┴┘└─┘  ┴ ┴└─┘┴─┘┴  └─┘┴└─
+"
+_aboutbanner="
+Written by and copyright (c)
+
+ ██╗ █████╗ ███╗   ███╗ ██████╗ ██████╗ ██████╗ ██╗  ██╗███████╗██╗   ██╗███████╗ █████╗  ██████╗ 
+███║██╔══██╗████╗ ████║██╔═══██╗██╔══██╗██╔══██╗██║  ██║██╔════╝██║   ██║██╔════╝██╔══██╗██╔═████╗
+╚██║╚██████║██╔████╔██║██║   ██║██████╔╝██████╔╝███████║█████╗  ██║   ██║███████╗╚█████╔╝██║██╔██║
+ ██║ ╚═══██║██║╚██╔╝██║██║   ██║██╔══██╗██╔═══╝ ██╔══██║██╔══╝  ██║   ██║╚════██║██╔══██╗████╔╝██║
+ ██║ █████╔╝██║ ╚═╝ ██║╚██████╔╝██║  ██║██║     ██║  ██║███████╗╚██████╔╝███████║╚█████╔╝╚██████╔╝
+ ╚═╝ ╚════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚══════╝ ╚════╝  ╚═════╝ 
+
+[http://github.com/19morpheus80] under the GPL 3.0 License
+"

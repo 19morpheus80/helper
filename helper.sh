@@ -282,6 +282,8 @@ show_docker_ips () {
     docker ps -q | xargs -n 1 docker inspect --format '{{ .NetworkSettings.IPAddress }} {{ .Name }}' | sed 's/ \// /'
 }
 
+echo $"$_titlebanner"
+
 case "$1" in
         show)
             show_docker_ips
@@ -289,7 +291,7 @@ case "$1" in
         check)
             check_pre_reqs
             ;;
-        ok)
+        cmd)
             print_daemon_commmand
             echo " "
             print_miner_command
@@ -335,13 +337,13 @@ case "$1" in
             docker_monitor
             ;;
         about)
-            echo "$_banner"
+            echo "$_aboutbanner"
             ;;
          *)
             echo $"Prep   Usage: $0 {autoprep} || {check|update|compile|strip|build}"
             echo $"Daemon Usage: $0 {dstart|dstop|drestart}"
             echo $"Miner  Usage: $0 {mstart|mstop|mrestart}"
-            echo $"Info.  Usage: $0 {show|monitor|about}"
+            echo $"Info.  Usage: $0 {cmd|show|monitor|about}"
             echo ""
             echo $"General guide: If you're seeing this, a config file is loaded.  Have you checked it?"
             echo $"Autoprep builds the docker image with binaries using subsequent commands (use this)."

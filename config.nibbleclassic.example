@@ -8,7 +8,19 @@ D_EXEC="Nibbled"
 P2P_PORT="17120"
 RPC_PORT="17122"
 
-#Add whatever daemon flags you need to supply (--load-checkpoints=<path> --fee-address=<address> --fee-amount=#)
+#If you change this line you have to rebuild your docker container (./helper build)
+CHECKPOINTS_URL="https://github.com/turtlecoin/checkpoints/raw/master/checkpoints.csv"
+
+#Uncomment and type the full path to the existing blockchain data folder, if your using that
+# otherwise the data location is a docker volume
+#DATA_DIR="/"
+
+#Extra daemon options
+ENABLE_BLOCKEXPLORER="1" # 1 enables option
+FEE_ADDRESS="TRTLuxqfDys1pfQ1omkHMVViY4sFh6My5Ff3HBY8XPp3cJBkEfD7romVyzKug3mb9NNR4A8kEjZxZ9CHUgWckBSpPfbxnWAQUGL"
+FEE_AMOUNT="400"
+
+#Add whatever additional daemon flags you need to supply?
 ADD_DAEMON=""
 
 #Address to mine to
@@ -20,16 +32,15 @@ MINE_THREAD="1"
 #Additional mining flags, excluding daemon-host, threads, and address, which are already supplied through variables
 ADD_MINER=""
 
-#Abbreviated coin name
-S_NAME="nbx"
+#Array containing software build pre-requisites
+declare -a pReq=("build-essential" "g++-8" "gcc-8" "git" "libboost-all-dev" "cmake" "curl" "software-properties-common" "jq")
+declare -i _allowsyncdiff=120 # how many blocks of desync to measure before daemon restart trigger
+declare -i _restartcount=0
 
 ### You don't really need to touch anything below this line ###
 
 #Set this to Yes to have the pre-requisites check to add UFW rules (for a public node)
 CONFIG_FIREWALL="No"
-
-#Array containing software build pre-requisites
-declare -a pReq=("build-essential" "g++-8" "gcc-8" "git" "libboost-all-dev" "cmake" "curl" "software-properties-common" "jq")
 
 #The miner docker name
 M="miner"
@@ -51,3 +62,58 @@ OUT_DIR="bin"
 #Text formatting
 T_BOLD=$(tput bold)
 T_NORM=$(tput sgr0)
+
+if [ $ENABLE_BLOCKEXPLORER = "1" ]; then
+    ADD_DAEMON+=" --enable-blockexplorer"
+fi
+if [ ! -z $CHECKPOINTS_URL ]; then
+    ADD_DAEMON+=" --load-checkpoints=/root/checkpoints.csv"
+fi
+if [ ! -z $FEE_AMOUNT ] && [ ! -z $FEE_ADDRESS ]; then
+    ADD_DAEMON+=" --fee-address=$FEE_ADDRESS --fee-amount=$FEE_AMOUNT"
+fi
+
+# interactive or detached mode
+if [ "$2" == "i" ]; then
+INTMODE=""
+else
+INTMODE="-d " #keep the trailing space
+fi
+
+if [ ! -z $DATA_DIR ]; then
+    _mountcommand="-v $DATA_DIR:/data"
+else
+    _mountcommand="--mount source=$S_NAME-data,target=/data"
+fi
+
+DAEMON_COMMAND="/usr/bin/$D_EXEC --rpc-bind-ip=0.0.0.0 --p2p-bind-ip 0.0.0.0 --data-dir=/data"
+if [ ! -z  "$ADD_DAEMON" ]; then
+    DAEMON_COMMAND+=" $ADD_DAEMON"
+fi
+DAEMON_COMMAND="docker run $INTMODE-it --restart=unless-stopped -p $RPC_PORT:$RPC_PORT -p $P2P_PORT:$P2P_PORT --name=$DOCK_DAEMON $_mountcommand $GH_REPO $DAEMON_COMMAND"
+
+MINER_COMMAND="/usr/bin/miner --daemon-host=\$DAEMON_IP --threads=$MINE_THREAD --address=$MINE_ADDR"
+if [ ! -z "$ADD_MINER" ]; then
+    ADD_MINER+=" $ADD_MINER"
+fi
+MINER_COMMAND="nice docker run $INTMODE-it --restart=unless-stopped --name=$DOCK_MINER $GH_REPO $MINER_COMMAND"
+
+REPO_PATH=$(readlink -f "$RELA_PATH/$GH_REPO")
+WORK_PATH=$(pwd)
+BINDEST_PATH=$(readlink -f "$RELA_PATH/$OUT_DIR") #where we save stripped binaries
+
+_titlebanner="
+Morpheus'
+┌─┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┌┐┌┌─┐┌┬┐┌─┐  ┬ ┬┌─┐┬  ┌─┐┌─┐┬─┐
+│  ├┬┘└┬┘├─┘ │ │ │││││ │ ││├┤   ├─┤├┤ │  ├─┘├┤ ├┬┘
+└─┘┴└─ ┴ ┴   ┴ └─┘┘└┘└─┘─┴┘└─┘  ┴ ┴└─┘┴─┘┴  └─┘┴└─
+"
+_aboutbanner="
+Written by and copyright (c)
+
+            19┌┬┐┌─┐┬─┐┌─┐┬ ┬┌─┐┬ ┬┌─┐
+              ││││ │├┬┘├─┘├─┤├┤ │ │└─┐
+              ┴ ┴└─┘┴└─┴  ┴ ┴└─┘└─┘└─┘80
+
+[http://github.com/19morpheus80] under the GPL 3.0 License
+"
