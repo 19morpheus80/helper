@@ -296,7 +296,7 @@ reset_blockchain () {
     else
         echo "OK let's not do that then"
     fi
-    
+}
 
 echo $"$_titlebanner"
 
