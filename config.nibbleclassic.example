@@ -3,6 +3,9 @@ GH_REPO="NBX"
 GH_URL="https://github.com/Sudosups/"
 GH_BRANCH="master"
 
+#Abbreviated coin name or ticker - used for naming the docker containers
+S_NAME="nbx"
+
 #Daemon executable
 D_EXEC="Nibbled"
 P2P_PORT="17120"
@@ -18,26 +21,33 @@ CHECKPOINTS_URL="https://github.com/turtlecoin/checkpoints/raw/master/checkpoint
 #Extra daemon options
 ENABLE_BLOCKEXPLORER="1" # 1 enables option
 FEE_ADDRESS="TRTLuxqfDys1pfQ1omkHMVViY4sFh6My5Ff3HBY8XPp3cJBkEfD7romVyzKug3mb9NNR4A8kEjZxZ9CHUgWckBSpPfbxnWAQUGL"
-FEE_AMOUNT="400"
-
-#Add whatever additional daemon flags you need to supply?
-ADD_DAEMON=""
+FEE_AMOUNT="400" #empty this to turn off TX fees altogether
 
 #Address to mine to
-MINE_ADDR="Nib1hUe6WRvVFjzTC1AcZgap7DSFvYwtrXjkA1AZsppcU8Pmbe3mqykT4LHV2oAHJp7SH48Sm94JdJtQiPfA5zn28LmWjbbwrV"
+MINE_ADDR="$FEE_ADDRESS"
 
 #Threads to use when mining
 MINE_THREAD="1"
 
+#Add whatever additional daemon flags you need to supply?
+ADD_DAEMON=""
+
 #Additional mining flags, excluding daemon-host, threads, and address, which are already supplied through variables
 ADD_MINER=""
+
+#Type the full path to the existing blockchain data folder, if your using that
+#otherwise leave blank and the data location will be a docker volume
+DATA_DIR=""
 
 #Array containing software build pre-requisites
 declare -a pReq=("build-essential" "g++-8" "gcc-8" "git" "libboost-all-dev" "cmake" "curl" "software-properties-common" "jq")
 declare -i _allowsyncdiff=120 # how many blocks of desync to measure before daemon restart trigger
 declare -i _restartcount=0
 
-### You don't really need to touch anything below this line ###
+###################### You don't really need to touch anything below this line ########################
+#######################################################################################################
+##
+#
 
 #Set this to Yes to have the pre-requisites check to add UFW rules (for a public node)
 CONFIG_FIREWALL="No"
@@ -49,9 +59,6 @@ DOCK_MINER="$S_NAME$M"
 #The docker daemon name
 D="daemon"
 DOCK_DAEMON="$S_NAME$D"
-
-#Where the scripts are being called from
-SCR_PATH="$(dirname "$0")"
 
 #Where the Github source is going to be stored, relative to these scripts
 RELA_PATH=".."
