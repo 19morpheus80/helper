@@ -14,6 +14,7 @@ Use it like this:
 mkdir coin && cd $_
 git clone https://19morpehus80/helper
 cd helper
+./dockerprep.sh
 cp config.turtlecoin.example config.sh
 nano config.sh
 
