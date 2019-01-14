@@ -14,10 +14,6 @@ RPC_PORT="11898"
 #If you change this line you have to rebuild your docker container (./helper build)
 CHECKPOINTS_URL="https://github.com/turtlecoin/checkpoints/raw/master/checkpoints.csv"
 
-#Uncomment and type the full path to the existing blockchain data folder, if your using that
-# otherwise the data location is a docker volume
-#DATA_DIR="/"
-
 #Extra daemon options
 ENABLE_BLOCKEXPLORER="1" # 1 enables option
 FEE_ADDRESS="TRTLuxqfDys1pfQ1omkHMVViY4sFh6My5Ff3HBY8XPp3cJBkEfD7romVyzKug3mb9NNR4A8kEjZxZ9CHUgWckBSpPfbxnWAQUGL"
