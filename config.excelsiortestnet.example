@@ -16,7 +16,7 @@ CHECKPOINTS_URL=""
 
 #Extra daemon options
 ENABLE_BLOCKEXPLORER="0" # 1 enables option
-FEE_ADDRESS=""
+FEE_ADDRESS="XL43VbkujorGEs1GwQFDhK8HHdbG1P7aQEuwomXYR3WWdK2yXHrVhw4inDL75T2SrrEvJ6vZgJroy16gwR3du3LQ1kQAiahxa"
 FEE_AMOUNT="" #empty this to turn off TX fees altogether
 
 #Address to mine to
