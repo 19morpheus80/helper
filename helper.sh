@@ -232,7 +232,7 @@ docker_monitor () {
         if [ -z $DAEMON_IP ]; then
             echo "Daemon does not seem to be running!"
         else
-            NODE_INFO=$(wget -qO- $DAEMON_IP:$P2P_PORT/getinfo | jq '{difficulty, hashrate, height, network_height, status, synced, incoming_connections_count, outgoing_connections_count}')
+            NODE_INFO=$(wget -qO- $DAEMON_IP:$RPC_PORT/getinfo | jq '{difficulty, hashrate, height, network_height, status, synced, incoming_connections_count, outgoing_connections_count}')
             DOCKER_IP=$(get_docker_ip $DOCK_MINER)
             if [ -z $DOCKER_IP ]; then
                 _miner="Miner does not seem to be running"
