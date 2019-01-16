@@ -251,7 +251,7 @@ docker_monitor () {
                 _synced="Yes"
             fi
             clear
-            echo "Docker daemon running on $DAEMON_IP"
+            echo "Monitoring $DOCK_DAEMON daemon running on $DAEMON_IP"
             echo "Difficulty:  $(numfmt --to=si --format='%.2f' $_difficulty)"
             echo "Hashrate:    $(numfmt --to=si --format='%.3f' $_hashrate)H/s"
             echo "Height:      $_netheight(+/-$_heightdiff)"
@@ -270,10 +270,12 @@ docker_monitor () {
                 let "_restartcount++"
                 echo $_restartcount
                 daemon_restart
-                sleep 10
-            else
-                sleep 10
             fi
+        _tail5logs=$(docker logs --tail 5 $DOCK_DAEMON)
+        echo "Daemon log: "
+        echo ""
+        echo "$_tail5logs"
+        sleep 10
         fi
     done
 }
