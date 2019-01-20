@@ -12,7 +12,7 @@ P2P_PORT="17120"
 RPC_PORT="17122"
 
 #If you change this line you have to rebuild your docker container (./helper build)
-CHECKPOINTS_URL="https://github.com/turtlecoin/checkpoints/raw/master/checkpoints.csv"
+CHECKPOINTS_URL=""
 
 #Extra daemon options
 ENABLE_BLOCKEXPLORER="1" # 1 enables option
