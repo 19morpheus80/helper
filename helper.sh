@@ -232,14 +232,14 @@ docker_monitor () {
         if [ -z $DAEMON_IP ]; then
             echo "Daemon does not seem to be running!"
         else
-            
+
             NODE_INFO=$(wget -qO- $DAEMON_IP:$RPC_PORT/getinfo | jq '{difficulty, hashrate, height, network_height, status, synced, incoming_connections_count, outgoing_connections_count}')
             MINER_IP=$(get_docker_ip $DOCK_MINER)
-            if [ -z $MINER_IP ]; then
-                _miner="Miner does not seem to be running"
-            else
-                _miner=$(docker logs --tail 10 $DOCK_MINER | grep "Mining" | tail -1)
-            fi
+#            if [ -z $MINER_IP ]; then
+#                _miner="Miner does not seem to be running"
+#            else
+#                _miner=$(docker logs --tail 10 $DOCK_MINER | grep "Mining" | tail -1)
+#            fi
             _difficulty=$(echo "$NODE_INFO" | grep difficulty | grep -o '[0-9]\+')
             _hashrate=$(echo "$NODE_INFO" | grep hashrate | grep -o '[0-9]\+')
             _height=$(echo "$NODE_INFO" | grep height | grep -o '[0-9]\+')
@@ -252,7 +252,7 @@ docker_monitor () {
                 _synced="Yes"
             fi
             clear
-            echo "Monitoring $DOCK_DAEMON daemon running on $DAEMON_IP"
+            echo "Monitoring $DOCK_DAEMON on $DAEMON_IP"
             echo "Difficulty:  $(numfmt --to=si --format='%.2f' $_difficulty)"
             echo "Hashrate:    $(numfmt --to=si --format='%.3f' $_hashrate)H/s"
             echo "Height:      $_netheight(+/-$_heightdiff)"
@@ -272,10 +272,15 @@ docker_monitor () {
                 echo $_restartcount
                 daemon_restart
             fi
-        _tail5logs=$(docker logs --tail 5 $DOCK_DAEMON)
+        _tail5daemon=$(docker logs --tail 5 $DOCK_DAEMON)
         echo "Daemon log: "
-        echo ""
-        echo "$_tail5logs"
+        echo "$_tail5daemon"
+        if [ ! -z $MINER_IP ]; then
+                _tail5miner=$(docker logs --tail 5 $DOCK_MINER)
+                echo " "
+                echo "Miner log: "
+                echo "$_tail5miner"
+        fi
         sleep 10
         fi
     done
@@ -336,7 +341,7 @@ case "$1" in
             ;;
         mstart)
             miner_start
-            ;;         
+            ;;
         mstop)
             miner_stop
             ;;
@@ -345,7 +350,7 @@ case "$1" in
             ;;
         dstart)
             daemon_start
-            ;;         
+            ;;
         dstop)
             daemon_stop
             ;;
