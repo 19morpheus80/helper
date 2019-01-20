@@ -102,7 +102,7 @@ fi
 
 MINER_COMMAND="/usr/bin/$M_EXEC --daemon-host=\$DAEMON_IP --threads=$MINE_THREAD --address=$MINE_ADDR"
 if [ ! -z "$ADD_MINER" ]; then
-    ADD_MINER+=" $ADD_MINER"
+    MINER_COMMAND+=" $ADD_MINER"
 fi
 MINER_COMMAND="nice docker run $INTMODE-it --restart=unless-stopped --name=$DOCK_MINER $GH_REPO $MINER_COMMAND"
 
