@@ -15,7 +15,7 @@ RPC_PORT="17122"
 CHECKPOINTS_URL=""
 
 #Extra daemon options
-ENABLE_BLOCKEXPLORER="1" # 1 enables option
+ENABLE_BLOCKEXPLORER="0" # 1 enables option
 FEE_ADDRESS=""
 FEE_AMOUNT="" #empty this to turn off TX fees altogether
 
