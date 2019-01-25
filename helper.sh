@@ -243,7 +243,7 @@ docker_monitor () {
         if [ -z $DAEMON_IP ]; then
             echo "Daemon does not seem to be running!"
             exit 1
-        else
+        fi
 
         while [ $? -eq 0 ]; do
         if [ ! -z "$_pidof" ]; then
@@ -252,7 +252,7 @@ docker_monitor () {
 
 
         _noderesp=$(wget --timeout=10 --tries=1 -qO- $DAEMON_IP:$RPC_PORT/info | jq '.')
-        if [ -z $_noderesp ]; then
+        if [ -z "$_noderesp" ]; then
             sleep 5
             docker_monitor
         fi
@@ -322,7 +322,6 @@ docker_monitor () {
                 echo "$_tail5miner"
         fi
         echo "${reset}"
-        fi
     done
 }
 
