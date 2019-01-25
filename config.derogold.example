@@ -8,6 +8,7 @@ S_NAME="dg"
 
 #Daemon executable
 D_EXEC="DeroGoldd"
+M_EXEC="miner"
 P2P_PORT="42069"
 RPC_PORT="6969"
 
@@ -17,7 +18,7 @@ CHECKPOINTS_URL="https://github.com/derogold/checkpoints/raw/master/checkpoints.
 #Extra daemon options
 ENABLE_BLOCKEXPLORER="0" # 1 enables option
 FEE_ADDRESS=""
-FEE_AMOUNT=""
+FEE_AMOUNT="" #empty this to turn off TX fees altogether
 
 #Address to mine to
 MINE_ADDR="$FEE_ADDRESS"
@@ -95,9 +96,13 @@ if [ ! -z  "$ADD_DAEMON" ]; then
 fi
 DAEMON_COMMAND="docker run $INTMODE-it --restart=unless-stopped -p $RPC_PORT:$RPC_PORT -p $P2P_PORT:$P2P_PORT --name=$DOCK_DAEMON $_mountcommand $GH_REPO $DAEMON_COMMAND"
 
-MINER_COMMAND="/usr/bin/miner --daemon-host=\$DAEMON_IP --threads=$MINE_THREAD --address=$MINE_ADDR"
+if [ -z "$M_EXEC" ]; then
+    M_EXEC="miner"
+fi
+
+MINER_COMMAND="/usr/bin/$M_EXEC --daemon-host=\$DAEMON_IP --threads=$MINE_THREAD --address=$MINE_ADDR"
 if [ ! -z "$ADD_MINER" ]; then
-    ADD_MINER+=" $ADD_MINER"
+    MINER_COMMAND+=" $ADD_MINER"
 fi
 MINER_COMMAND="nice docker run $INTMODE-it --restart=unless-stopped --name=$DOCK_MINER $GH_REPO $MINER_COMMAND"
 
