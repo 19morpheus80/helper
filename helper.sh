@@ -238,7 +238,7 @@ fextract () {
 }
 
 docker_monitor () {
-
+        #check daemon is running
         DAEMON_IP=$(get_docker_ip $DOCK_DAEMON)
         if [ -z $DAEMON_IP ]; then
             echo "Daemon does not seem to be running!"
@@ -246,27 +246,27 @@ docker_monitor () {
         fi
 
         while [ $? -eq 0 ]; do
-        if [ ! -z "$_pidof" ]; then
-            sleep 5
-        fi
 
-
+        #grab the info from the daemon's RPC service
         _noderesp=$(wget --timeout=10 --tries=1 -qO- $DAEMON_IP:$RPC_PORT/info | jq '.')
         if [ -z "$_noderesp" ]; then
+            echo "no response from rpc server"
             sleep 5
-            docker_monitor
+            docker_monitor #restart the monitor; maybe the service is unavailable (restarting?)
         fi
 
-        _tail5daemon=$(docker logs --tail 5 $DOCK_DAEMON)
-        if [ ! -z $MINER_IP ]; then
-            _tail5miner=$(docker logs --tail 5 $DOCK_MINER)
-        fi
-
+        # get the daemon logs and miner logs if available
+        _taildaemon=$(docker logs --tail 3 $DOCK_DAEMON)
         MINER_IP=$(get_docker_ip $DOCK_MINER)
+        if [ ! -z $MINER_IP ]; then
+            _tailminer=$(docker logs --tail 3 $DOCK_MINER)
+        fi
+
+        # find the CPU usage of the daemon
         _pidof=$(pidof $D_EXEC)
-        _daemoncpu=$(cpustat -a -q -p $_pidof 1 1)
-        if [ -z $_daemoncpu ]; then
-        _daemoncpu="0%"
+        _daemoncpu=$(cpustat -p $_pidof 0.333 1 | tail -n 2 | head -n 1 | awk '{ print $1 }')
+        if [ $_daemoncpu = "%CPU" ]; then
+            _daemoncpu="0"
         fi
 
         _altblocks=$(fextract "$_noderesp" "alt_blocks_count")
@@ -277,7 +277,6 @@ docker_monitor () {
         _netheight=$(fextract "$_noderesp" "network_height")
         _version=$(echo "$_noderesp" | grep "\"version\"" | awk '{ print $2 }')
 
-        echo "$_version"
         if [ ! -z "$_netheight" ]; then
             _heightdiff=$(awk "BEGIN {print $_netheight - $_height}")
         else
@@ -285,41 +284,33 @@ docker_monitor () {
         fi
         _incoming=$(fextract "$_noderesp" "incoming_connections_count")
         _outgoing=$(fextract "$_noderesp" "outgoing_connections_count")
-        _synced=$(fextract "$_noderesp" "synced")
 
-        #if [ ! -z $_synced ]; then
-        #    _synced="Yes"
-        #fi
+        sleep 5
         clear
+
         echo "Monitoring $D_EXEC $_version on $DAEMON_IP"
-        printf "\nCPU utilisation is\t$_daemoncpu%\n"
+        printf "\nCPU utilisation is\t$_daemoncpu%%\n"
         printf "Difficulty/ Hashrate:\t$(numfmt --to=si --format='%.2f' $_difficulty)/ $(numfmt --to=si --format='%.3f' $_hashrate)H/s\n"
         printf "Net Height (local):\t$_netheight(+/-$_heightdiff)\n"
         printf "Alt Block count:\t$_altblocks\n"
         printf "TX Pool:\t\t$_txpool\n"
         printf "Conn.:\t\t\tIn:$_incoming/Out:$_outgoing\n"
-        #if [ ! -z $_synced ]; then
-        #  echo "Synced:      $_synced"
-        #else
-        #  echo "Syncing..."
-        #fi
-        echo "$_synced"
         echo "$_miner"
         if [ $_restartcount -ge 1 ]; then
             echo "Restarted $_restartcount times"
         fi
-        if [ ! -z $_synced  ] && [ $_heightdiff -gt $_allowsyncdiff ]; then
+        if [ ! -z "$_synced"  ] && [ $_heightdiff -gt $_allowsyncdiff ]; then
             echo "Out of sync - Restarting daemon!"
             let "_restartcount++"
             echo $_restartcount
-            daemon_restart
+            $(daemon_restart)
         fi
        
         echo "Daemon log: "
-        echo "$_tail5daemon"
+        echo "$_taildaemon"
         if [ ! -z $MINER_IP ]; then
                 printf "\nMiner log: "
-                echo "$_tail5miner"
+                echo "$_tailminer"
         fi
         echo "${reset}"
     done
