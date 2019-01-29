@@ -37,7 +37,7 @@ ADD_MINER=""
 DATA_DIR=""
 
 #Array containing software build pre-requisites
-declare -a pReq=("build-essential" "g++-8" "gcc-8" "git" "libboost-all-dev" "cmake" "curl" "software-properties-common" "jq")
+declare -a pReq=("build-essential" "g++-8" "gcc-8" "git" "libboost-all-dev" "cmake" "curl" "software-properties-common" "jq" "cpustat")
 declare -i _allowsyncdiff=120 # how many blocks of desync to measure before daemon restart trigger
 declare -i _restartcount=0
 
