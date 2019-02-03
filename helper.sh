@@ -118,7 +118,8 @@ update_source () {
         read -p "Source path $GH_REPO not found.  Clone git now? (Y/n): " U_INPUT
         if [[ ! $U_INPUT = "n" ]] && [[ ! $U_INPUT = "N" ]]; then
             cd "$RELA_PATH"
-            git clone --singlebranch $GH_BRANCH $GH_URL$GH_REPO
+            git clone $GH_URL$GH_REPO
+            git checkout $GH_BRANCH
         fi
     else
         read -p "Source path $GH_REPO found.  Update now? (Y/n): " U_INPUT
