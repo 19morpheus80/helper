@@ -1,7 +1,7 @@
 #Details of the GitHub source location
 GH_REPO="excelsior"
 GH_URL="https://github.com/xlscoin/" #keep trailing slash
-GH_BRANCH="development"
+GH_BRANCH="master"
 
 #Abbreviated coin name or ticker - used for naming the docker containers
 S_NAME="xls"
@@ -9,8 +9,8 @@ S_NAME="xls"
 #Daemon executable
 D_EXEC="Excelsiord"
 M_EXEC="miner"
-P2P_PORT="29801"
-RPC_PORT="29802"
+P2P_PORT="19801"
+RPC_PORT="19802"
 
 #If you change this line you have to rebuild your docker container (./helper build)
 CHECKPOINTS_URL=""
@@ -18,7 +18,7 @@ CHECKPOINTS_URL=""
 #Extra daemon options
 ENABLE_BLOCKEXPLORER="0" # 1 enables option
 FEE_ADDRESS="XL43VbkujorGEs1GwQFDhK8HHdbG1P7aQEuwomXYR3WWdK2yXHrVhw4inDL75T2SrrEvJ6vZgJroy16gwR3du3LQ1kQAiahxa"
-FEE_AMOUNT="" #empty this to turn off TX fees altogether
+FEE_AMOUNT="10000000" #empty this to turn off TX fees altogether
 
 #Address to mine to
 MINE_ADDR="$FEE_ADDRESS"
