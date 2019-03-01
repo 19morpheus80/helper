@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# This file needs updating with some error checking and check docker group exists before attempting usermod.
+
 echo "Updating system"
 
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
