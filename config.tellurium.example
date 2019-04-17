@@ -1,0 +1,126 @@
+#Details of the GitHub source location
+GH_REPO="tellurium"
+GH_URL="https://github.com/telluriumcoin/" #keep trailing slash
+GH_BRANCH="master"
+
+#Abbreviated coin name or ticker - used for naming the docker containers
+S_NAME="tll"
+
+#Daemon executable
+D_EXEC="Telluriumd"
+P2P_PORT="32301"
+RPC_PORT="32302"
+
+#If you change this line you have to rebuild your docker container (./helper build)
+CHECKPOINTS_URL=""
+
+#Extra daemon options
+ENABLE_BLOCKEXPLORER="0" # 1 enables option
+FEE_ADDRESS=""
+FEE_AMOUNT=""
+
+#Address to mine to
+MINE_ADDR="$FEE_ADDRESS"
+
+#Threads to use when mining
+MINE_THREAD="2"
+
+#Add whatever additional daemon flags you need to supply?
+ADD_DAEMON=""
+
+#Additional mining flags, excluding daemon-host, threads, and address, which are already supplied through variables
+ADD_MINER=""
+
+#Type the full path to the existing blockchain data folder, if your using that
+#otherwise leave blank and the data location will be a docker volume
+DATA_DIR=""
+
+#Array containing software build pre-requisites
+declare -a pReq=("build-essential" "g++-8" "gcc-8" "git" "libboost-all-dev" "cmake" "curl" "software-properties-common" "jq")
+declare -i _allowsyncdiff=120 # how many blocks of desync to measure before daemon restart trigger
+declare -i _restartcount=0
+
+###################### You don't really need to touch anything below this line ########################
+#######################################################################################################
+##
+#
+
+#Set this to Yes to have the pre-requisites check to add UFW rules (for a public node)
+CONFIG_FIREWALL="Yes"
+
+#The miner docker name
+M="miner"
+DOCK_MINER="$S_NAME$M"
+
+#The docker daemon name
+D="daemon"
+DOCK_DAEMON="$S_NAME$D"
+
+#Where the Github source is going to be stored, relative to these scripts
+RELA_PATH=".."
+
+#The path we'll save the stripped binaries to, relative to the build path
+OUT_DIR="bin"
+
+#Text formatting
+T_BOLD=$(tput bold)
+T_NORM=$(tput sgr0)
+
+if [ $ENABLE_BLOCKEXPLORER = "1" ]; then
+    ADD_DAEMON+=" --enable-blockexplorer"
+fi
+if [ ! -z $CHECKPOINTS_URL ]; then
+    ADD_DAEMON+=" --load-checkpoints=/root/checkpoints.csv"
+fi
+if [ ! -z $FEE_AMOUNT ] && [ ! -z $FEE_ADDRESS ]; then
+    ADD_DAEMON+=" --fee-address=$FEE_ADDRESS --fee-amount=$FEE_AMOUNT"
+fi
+
+# interactive or detached mode
+if [ "$2" == "i" ]; then
+INTMODE=""
+else
+INTMODE="-d " #keep the trailing space
+fi
+
+if [ ! -z $DATA_DIR ]; then
+    _mountcommand="-v $DATA_DIR:/data"
+else
+    _mountcommand="--mount source=$S_NAME-data,target=/data"
+fi
+
+DAEMON_COMMAND="/usr/bin/$D_EXEC --rpc-bind-ip=0.0.0.0 --p2p-bind-ip=0.0.0.0 --data-dir=/data"
+if [ ! -z  "$ADD_DAEMON" ]; then
+    DAEMON_COMMAND+=" $ADD_DAEMON"
+fi
+DAEMON_COMMAND="docker run $INTMODE-it --restart=unless-stopped -p $RPC_PORT:$RPC_PORT -p $P2P_PORT:$P2P_PORT --name=$DOCK_DAEMON $_mountcommand $GH_REPO $DAEMON_COMMAND"
+
+if [ -z "$M_EXEC" ]; then
+    M_EXEC="miner"
+fi
+
+MINER_COMMAND="/usr/bin/$M_EXEC --daemon-host=\$DAEMON_IP --threads=$MINE_THREAD --address=$MINE_ADDR"
+if [ ! -z "$ADD_MINER" ]; then
+    MINER_COMMAND+=" $ADD_MINER"
+fi
+MINER_COMMAND="nice docker run $INTMODE-it --restart=unless-stopped --name=$DOCK_MINER $GH_REPO $MINER_COMMAND"
+
+REPO_PATH=$(readlink -f "$RELA_PATH/$GH_REPO")
+WORK_PATH=$(pwd)
+BINDEST_PATH=$(readlink -f "$RELA_PATH/$OUT_DIR") #where we save stripped binaries
+
+_titlebanner="
+Morpheus'
+┌─┐┬─┐┬ ┬┌─┐┌┬┐┌─┐┌┐┌┌─┐┌┬┐┌─┐  ┬ ┬┌─┐┬  ┌─┐┌─┐┬─┐
+│  ├┬┘└┬┘├─┘ │ │ │││││ │ ││├┤   ├─┤├┤ │  ├─┘├┤ ├┬┘
+└─┘┴└─ ┴ ┴   ┴ └─┘┘└┘└─┘─┴┘└─┘  ┴ ┴└─┘┴─┘┴  └─┘┴└─
+"
+_aboutbanner="
+Written by and copyright (c)
+
+            19┌┬┐┌─┐┬─┐┌─┐┬ ┬┌─┐┬ ┬┌─┐
+              ││││ │├┬┘├─┘├─┤├┤ │ │└─┐
+              ┴ ┴└─┘┴└─┴  ┴ ┴└─┘└─┘└─┘80
+
+[http://github.com/19morpheus80] under the GPL 3.0 License
+"
