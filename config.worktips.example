@@ -1,6 +1,6 @@
 #Details of the GitHub source location
-GH_REPO="worktipscoin"
-GH_URL="https://github.com/worktips/" #keep trailing slash
+GH_REPO="worktips"
+GH_URL="https://github.com/worktips-project/ #keep trailing slash
 GH_BRANCH="master"
 
 #Abbreviated coin name or ticker - used for naming the docker containers
@@ -8,8 +8,8 @@ S_NAME="wtip"
 
 #Daemon executable
 D_EXEC="Worktipsd"
-P2P_PORT="17239"
-RPC_PORT="18238"
+P2P_PORT="31022"
+RPC_PORT="31022"
 
 #If you change this line you have to rebuild your docker container (./helper build)
 CHECKPOINTS_URL="https://github.com/worktips/checkpoints/raw/master/checkpoints.csv"
