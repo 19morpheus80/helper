@@ -4,7 +4,7 @@ GH_URL="https://github.com/telluriumcoin/" #keep trailing slash
 GH_BRANCH="master"
 
 #Abbreviated coin name or ticker - used for naming the docker containers
-S_NAME="tll"
+S_NAME="tlrm"
 
 #Daemon executable
 D_EXEC="Telluriumd"
