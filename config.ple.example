@@ -1,18 +1,18 @@
 #Details of the GitHub source location
 GH_REPO="worktips"
-GH_URL="https://github.com/worktips-project/ #keep trailing slash
+GH_URL="https://github.com/plenteum #keep trailing slash
 GH_BRANCH="master"
 
 #Abbreviated coin name or ticker - used for naming the docker containers
-S_NAME="wtip"
+S_NAME="ple"
 
 #Daemon executable
-D_EXEC="Worktipsd"
-P2P_PORT="31022"
-RPC_PORT="31022"
+D_EXEC="Plenteumd"
+P2P_PORT="44015"
+RPC_PORT="44016"
 
 #If you change this line you have to rebuild your docker container (./helper build)
-CHECKPOINTS_URL="https://github.com/worktips/checkpoints/raw/master/checkpoints.csv"
+CHECKPOINTS_URL=""
 
 #Extra daemon options
 ENABLE_BLOCKEXPLORER="0" # 1 enables option
