@@ -1,6 +1,6 @@
 #Details of the GitHub source location
-GH_REPO="worktips"
-GH_URL="https://github.com/plenteum #keep trailing slash
+GH_REPO="plenteum"
+GH_URL="https://github.com/plenteum" #keep trailing slash
 GH_BRANCH="master"
 
 #Abbreviated coin name or ticker - used for naming the docker containers
