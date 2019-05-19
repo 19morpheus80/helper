@@ -1,15 +1,15 @@
 #Details of the GitHub source location
-GH_REPO="tellurium"
-GH_URL="https://github.com/telluriumcoin/" #keep trailing slash
+GH_REPO="crygcoin"
+GH_URL="https://github.com/mi-mai/" #keep trailing slash
 GH_BRANCH="master"
 
 #Abbreviated coin name or ticker - used for naming the docker containers
-S_NAME="tll"
+S_NAME="cryg"
 
 #Daemon executable
 D_EXEC="Telluriumd"
-P2P_PORT="32301"
-RPC_PORT="32302"
+P2P_PORT="18897"
+RPC_PORT="18898"
 
 #If you change this line you have to rebuild your docker container (./helper build)
 CHECKPOINTS_URL=""
@@ -23,7 +23,7 @@ FEE_AMOUNT=""
 MINE_ADDR="$FEE_ADDRESS"
 
 #Threads to use when mining
-MINE_THREAD="2"
+MINE_THREAD=""
 
 #Add whatever additional daemon flags you need to supply?
 ADD_DAEMON=""
